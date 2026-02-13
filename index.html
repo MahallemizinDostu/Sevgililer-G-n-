@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sonsuza Dek ❤️</title>
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            --glass: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text-dark: #2d3436;
+            --accent: #d81b60;
+            --special: #6c5ce7;
+            --e-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+            background: #fdfbfb;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            transition: background 1.5s ease;
+        }
+
+        body.music-active { animation: bgPulse 6s infinite alternate; }
+        @keyframes bgPulse { 0% { background-color: #fdfbfb; } 100% { background-color: #fce4ec; } }
+
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+        }
+
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 1s var(--e-ease); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+
+        .hero { height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 20px; position: relative; z-index: 5; }
+        .hero h1 { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 800; background: linear-gradient(45deg, #ee0979, #ff6a00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; z-index: 10; }
+
+        /* COUNTER CARD */
+        .counter-card { border-radius: 30px; padding: 30px; text-align: center; margin-bottom: 50px; }
+        .counter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+        .count { font-size: clamp(1.5rem, 5vw, 3rem); font-weight: 700; color: var(--accent); }
+        .label { font-size: 0.7rem; text-transform: uppercase; color: #636e72; letter-spacing: 1px; }
+
+        /* GALLERY */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 50px; }
+        .photo-item { aspect-ratio: 4/5; border-radius: 20px; overflow: hidden; background: #eee; }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+
+        /* NOW PLAYING PANEL - EN ÜSTTE DURMALI */
+        .now-playing {
+            position: fixed;
+            bottom: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 300px;
+            padding: 15px 25px;
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 9999; /* En üst katman */
+            transition: bottom 1s var(--e-ease);
+        }
+        .now-playing.show { bottom: 30px; }
+
+        .v-bar { width: 3px; height: 20px; background: var(--accent); animation: v-bounce 0.6s infinite alternate; }
+        @keyframes v-bounce { from { height: 4px; } to { height: 22px; } }
+
+        /* BUTTONS */
+        .btn-premium { background: var(--text-dark); color: white; border: none; padding: 16px 35px; font-size: 1rem; border-radius: 100px; cursor: pointer; transition: 0.4s; font-weight: 600; margin-top: 20px; }
+        .btn-special { background: var(--special); animation: pulse 2s infinite; margin-top: 10px; width: 100%; max-width: 250px; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(108, 92, 231, 0); } 100% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0); } }
+
+        /* OVERLAY - MESAJ KUTUSU */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.98); z-index: 8000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 25px; }
+
+        /* EMOJI VE NOTALAR - MESAJ KUTUSUNUN ÜSTÜNDE OLMALI */
+        .music-note { position: fixed; font-size: 24px; color: var(--special); pointer-events: none; z-index: 9000; animation: floatNote 4s linear forwards; opacity: 0; }
+        .emoji-drop { position: fixed; top: -50px; pointer-events: none; z-index: 9500; animation: fall linear forwards; }
+
+        @keyframes floatNote { 0% { transform: translateY(0) rotate(0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translate(var(--x), -100vh) rotate(360deg); opacity: 0; } }
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.8rem; }
+            .gallery-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particle-canvas"></canvas>
+
+    <audio id="mainAudio" loop preload="auto"><source src="sarki1.mp3" type="audio/mpeg"></audio>
+    <audio id="specialAudio" loop preload="auto"><source src="sarki1.mp3" type="audio/mpeg"></audio>
+
+    <div id="musicPanel" class="now-playing glass">
+        <div style="display:flex; gap:3px; align-items:flex-end; height:22px;">
+            <div class="v-bar"></div><div class="v-bar" style="animation-delay:0.2s"></div><div class="v-bar" style="animation-delay:0.4s"></div>
+        </div>
+        <div style="text-align: left;">
+            <p style="font-size: 0.6rem; text-transform: uppercase; color: #636e72;">Bizim Şarkımız ❤️</p>
+            <p style="font-weight: 700; color: var(--accent); font-size: 0.85rem;">Gel Yaralarını Ben Sarayım</p>
+        </div>
+    </div>
+
+    <section class="hero">
+        <h1 class="reveal active">Sonsuza Dek ❤️</h1>
+        <p class="reveal active">Seninle her saniye yeni bir hikaye.</p>
+    </section>
+
+    <div class="container">
+        <div class="counter-card glass reveal">
+            <p class="label">Birlikteliğimizde</p>
+            <div class="counter-grid">
+                <div><span class="count" id="d-val">0</span><br><span class="label">Gün</span></div>
+                <div><span class="count" id="h-val">0</span><br><span class="label">Saat</span></div>
+                <div><span class="count" id="m-val">0</span><br><span class="label">Dakika</span></div>
+            </div>
+        </div>
+
+        <h2 class="reveal" style="text-align: center; margin: 40px 0 20px;">Anılarımız</h2>
+        <div class="gallery-grid">
+            <div class="photo-item reveal"><img src="foto1.jpg" onerror="this.src='https://via.placeholder.com/400x500?text=Foto+1'"></div>
+            <div class="photo-item reveal"><img src="foto2.jpg" onerror="this.src='https://via.placeholder.com/400x500?text=Foto+2'"></div>
+            <div class="photo-item reveal"><img src="foto3.jpg" onerror="this.src='https://via.placeholder.com/400x500?text=Foto+3'"></div>
+            <div class="photo-item reveal"><img src="foto4.jpg" onerror="this.src='https://via.placeholder.com/400x500?text=Foto+4'"></div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn-premium reveal" onclick="surprise()">Sana Bir Mesajım Var ✨</button>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay">
+        <h2 style="font-size: 2rem; margin-bottom: 15px;">Seni Çok Seviyorum ❤️</h2>
+        <p id="msg-text" style="color: #636e72; line-height: 1.6; margin-bottom: 25px; padding: 0 15px; font-weight: 500;"></p>
+        
+        <button class="btn-premium btn-special" id="specialBtn" onclick="playOurSong()">Şarkımızı Başlat 🎵</button>
+        <button class="btn-premium" style="background:none; color:#999; border:1px solid #ddd; padding: 10px 25px;" onclick="closeOverlay()">Kapat</button>
+    </div>
+
+    <script>
+        const DATE_TARGET = "2025-08-14T00:00:00";
+        const mainAudio = document.getElementById('mainAudio');
+        const specialAudio = document.getElementById('specialAudio');
+
+        function update() {
+            const diff = new Date() - new Date(DATE_TARGET);
+            document.getElementById('d-val').innerText = Math.max(0, Math.floor(diff / 864e5));
+            document.getElementById('h-val').innerText = Math.max(0, Math.floor((diff % 864e5) / 36e5));
+            document.getElementById('m-val').innerText = Math.max(0, Math.floor((diff % 36e5) / 6e4));
+        }
+        setInterval(update, 1000); update();
+
+        const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('active')), {threshold: 0.1});
+        document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+
+        const c = document.getElementById('particle-canvas'), ctx = c.getContext('2d');
+        let ps = [];
+        function init() {
+            c.width = window.innerWidth; c.height = window.innerHeight;
+            ps = Array.from({length: 30}, () => ({x: Math.random()*c.width, y: Math.random()*c.height, s: Math.random()*2+1, o: Math.random()*0.5}));
+        }
+        function draw() {
+            ctx.clearRect(0,0,c.width,c.height);
+            ps.forEach(p => {
+                ctx.fillStyle = `rgba(216, 27, 96, ${p.o})`;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
+                p.y -= 0.3; if(p.y < 0) p.y = c.height;
+            });
+            requestAnimationFrame(draw);
+        }
+        window.onresize = init; init(); draw();
+
+        function playOurSong() {
+            specialAudio.play().then(() => {
+                document.body.classList.add('music-active');
+                document.getElementById('musicPanel').classList.add('show');
+                const btn = document.getElementById('specialBtn');
+                btn.innerText = "❤️ Şarkımız Çalıyor ❤️";
+                btn.disabled = true;
+                btn.style.opacity = "0.6";
+                spawnNotes();
+                for(let i=0; i<60; i++) setTimeout(createEmoji, i*100);
+            }).catch(() => alert("Lütfen sarki1.mp3 dosyasının ismini kontrol et!"));
+        }
+
+        function spawnNotes() {
+            setInterval(() => {
+                if(!specialAudio.paused) {
+                    const n = document.createElement('div');
+                    n.className = 'music-note';
+                    n.innerText = ['♪','♫','🎵','🎶'][Math.floor(Math.random()*4)];
+                    n.style.left = Math.random() * 100 + 'vw';
+                    n.style.bottom = '-20px';
+                    n.style.setProperty('--x', (Math.random()*200-100)+'px');
+                    document.body.appendChild(n);
+                    setTimeout(() => n.remove(), 4000);
+                }
+            }, 600);
+        }
+
+        function createEmoji() {
+            const e = document.createElement('div');
+            e.className = 'emoji-drop';
+            e.innerText = ['❤️','💖','✨','🌸'][Math.floor(Math.random()*4)];
+            e.style.left = Math.random() * 100 + 'vw';
+            e.style.fontSize = (Math.random()*20+20)+'px';
+            const dur = Math.random()*3+3;
+            e.style.animationDuration = dur + 's';
+            document.body.appendChild(e);
+            setTimeout(() => e.remove(), dur*1000);
+        }
+
+        function surprise() {
+            document.getElementById('msg-text').innerText = "Hayatımın en güzel kararı seninle bu yola çıkmaktı. 14 Ağustos 2025'ten beri her gün daha çok şükrediyorum. Seni çok seviyorum sevgilim!";
+            document.getElementById('overlay').style.display = 'flex';
+        }
+
+        function closeOverlay() { document.getElementById('overlay').style.display = 'none'; }
+    </script>
+</body>
+</html>
