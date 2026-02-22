@@ -200,8 +200,37 @@
             white-space: pre-wrap;
         }
 
+        /* --- VERSİYON GEÇİŞ BUTONU STİLİ --- */
+        .version-switcher {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+        }
+
+        .version-link {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            text-decoration: none;
+            color: var(--leather-brown);
+            font-size: 0.9rem;
+            border: 1px solid var(--accent-gold);
+            padding: 8px 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .version-link:hover {
+            background: var(--accent-gold);
+            color: white;
+            transform: scale(1.05);
+        }
+
         footer {
-            margin-top: 100px;
+            margin-top: 60px;
             padding-bottom: 50px;
             text-align: center;
             opacity: 0.6;
@@ -248,6 +277,12 @@
         <div id="notes-container">
             </div>
 
+        <div class="version-switcher">
+            <a href="14_subat_version_1.html" class="version-link">
+                ⏳ Eski Tasarıma Göz At (14 Şubat)
+            </a>
+        </div>
+
     </div>
 
     <footer>
@@ -260,13 +295,15 @@
         import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // Firebase Yapılandırması
-        const firebaseConfig = { apiKey: "AIzaSyBA4rPy98oT4yiwCDgD9wOyQbnTgVxCmPc",
-  authDomain: "bizim-defterimiz.firebaseapp.com",
-  projectId: "bizim-defterimiz",
-  storageBucket: "bizim-defterimiz.firebasestorage.app",
-  messagingSenderId: "872716718806",
-  appId: "1:872716718806:web:acbe91f0f33efb8445af77",
-  measurementId: "G-P6D5SYC1PM"};
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBA4rPy98oT4yiwCDgD9wOyQbnTgVxCmPc",
+            authDomain: "bizim-defterimiz.firebaseapp.com",
+            projectId: "bizim-defterimiz",
+            storageBucket: "bizim-defterimiz.firebasestorage.app",
+            messagingSenderId: "872716718806",
+            appId: "1:872716718806:web:acbe91f0f33efb8445af77",
+            measurementId: "G-P6D5SYC1PM"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -299,7 +336,7 @@
             }
         };
 
-        // Gerçek Zamanlı Dinleme (Tarih ve Saat Dahil)
+        // Gerçek Zamanlı Dinleme
         const q = query(notesCol, orderBy("createdAt", "desc"));
         
         onSnapshot(q, (snap) => {
@@ -307,7 +344,6 @@
             snap.forEach(doc => {
                 const data = doc.data();
                 
-                // Tarih formatlama (Örn: 22 Şubat 2026 - 13:45)
                 let dateDisplay = "Şimdi yazıldı...";
                 if(data.createdAt) {
                     const d = data.createdAt.toDate();
